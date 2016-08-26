@@ -6,13 +6,6 @@ rename <- function(df, old, wants) {
   return(df)
 }
 
-# outlier removal functions.
-arbitrary <- function(data) {
-  data <- subset(data, Income < 120000)
-  data <- subset(data, Income > 6000)
-  return(data)
-}
-
 tukey <- function(data) {
   iqr <- IQR(data$Income)
   firstQ <- quantile(data$Income)[2]
@@ -24,7 +17,7 @@ tukey <- function(data) {
   return(data)
 }
 
-cleanup <- function(data, removeOutliers) {
+cleanup <- function(data, handleOutliers) {
   # clean gender.
   data$Gender = ifelse(data$Soy == "Hombre", "M", "F")
   data$Gender = as.factor(data$Gender)
@@ -47,7 +40,7 @@ cleanup <- function(data, removeOutliers) {
   levels(data$Region)[levels(data$Region) == "R\303\255o Negro"] <- "Rio Negro"
   levels(data$Region)[levels(data$Region) == "Tucum\303\241n"] <- "Tucuman"
   levels(data$Region)[levels(data$Region) == "Provincia de Buenos Aires"] <- "GBA"
-
+  
   # fix age.
   levels(data$Age)[levels(data$Age) == "Menos de 18 a\303\261os"] <- "18-"
 
@@ -55,38 +48,42 @@ cleanup <- function(data, removeOutliers) {
   data <- rename(data, "Salario.mensual..en.tu.moneda.local.", "Income")
   data$Income <- ifelse(data$Bruto.o.neto. == "Bruto", data$Income, data$Income/0.70)
   data$Bruto.o.neto. = NULL
-
+  
   # fix job switch.
   data$SwitchedJobsLast6Months = ifelse(data$SwitchedJobsLast6Months == "No", 0, 1)
 
-  # filter fictitious salaries.
-  data <- removeOutliers(data)
-
+  # remove ficticious data.
+  data <- subset(data, Income < 200000)
+  data <- subset(data, Income > 1000)
+  
+  # handle outliers.
+  data <- handleOutliers(data)
+  
   keep <- c("Age", "Region", "YearsExperience", "YearsCurrentJob", "JobDescription",
             "JobType", "Happiness", "Income", "Gender", "SwitchedJobsLast6Months")
   return(data[keep])
 }
 
 all.salaries.hist <- function(df) {
-  plot <- ggplot(df, aes(x=Income), ylab="") +
+  plot <- ggplot(df, aes(x=Income), ylab="") + 
     geom_histogram(binwidth = 1000, fill="#3399FF", alpha=0.9)
   return(plot)
 }
 
 all.salaries.hist.median <- function(df) {
-  plot <- all.salaries.hist(df) +
+  plot <- all.salaries.hist(df) + 
     geom_vline(aes(xintercept = mean(Income)), linetype="longdash", color="red")
   return(plot)
 }
 
 all.salaries.gender = function(df) {
-  plot <- ggplot(df, aes(x=Income, fill=Gender), ylab="") +
+  plot <- ggplot(df, aes(x=Income, fill=Gender), ylab="") + 
     geom_histogram(binwidth = 1000, alpha=0.9)
   return(plot)
 }
 
-clean <- cleanup(df, removeOutliers = arbitrary)
+clean <- cleanup(df, handleOutliers = identity)
 write.csv(clean, 'clean.csv', row.names=FALSE)
 
-default.plot <- all.salaries.gender
+default.plot <- all.salaries.hist
 default.plot(clean)
