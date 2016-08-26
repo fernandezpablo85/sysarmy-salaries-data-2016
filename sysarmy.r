@@ -76,14 +76,29 @@ all.salaries.hist.median <- function(df) {
   return(plot)
 }
 
-all.salaries.gender = function(df) {
+all.salaries.gender <- function(df) {
   plot <- ggplot(df, aes(x=Income, fill=Gender), ylab="") + 
     geom_histogram(binwidth = 1000, alpha=0.9)
+  return(plot)
+}
+
+color.outliers <- function(df) {
+  iqr <- IQR(df$Income)
+  firstQ <- quantile(df$Income)[2]
+  thirdQ <- quantile(df$Income)[4]
+  low <- firstQ - (iqr * 1.5)
+  high <- thirdQ + (iqr * 1.5)
+  df$OutlierTag = "Middle"
+  df$OutlierTag[df$Income <= low] = "LowOutliers"
+  df$OutlierTag[df$Income >= high] = "HighOutliers"
+  plot <- ggplot(df, aes(x=Income, fill=OutlierTag)) +
+      geom_histogram(binwidth = 1000) +
+      geom_vline(aes(xintercept = high), linetype="longdash", color="red")
   return(plot)
 }
 
 clean <- cleanup(df, handleOutliers = identity)
 write.csv(clean, 'clean.csv', row.names=FALSE)
 
-default.plot <- all.salaries.hist
+default.plot <- color.outliers
 default.plot(clean)
