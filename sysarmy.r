@@ -97,6 +97,9 @@ color.outliers <- function(df) {
   return(plot)
 }
 
+# red #D57668
+# green #67ACB3
+
 clean <- cleanup(df, handleOutliers = identity)
 write.csv(clean, 'clean.csv', row.names=FALSE)
 
