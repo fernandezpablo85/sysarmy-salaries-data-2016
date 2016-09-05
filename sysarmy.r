@@ -97,11 +97,23 @@ color.outliers <- function(df) {
   return(plot)
 }
 
+normal.distribution.histogram <- function(size, mean, sd) {
+  sample.norm <- rnorm(size, mean, sd)
+  data <- data.frame(sample.norm)
+  plot <- ggplot(data, aes(x=sample.norm)) +
+    geom_density(fill="#67ACB3",colour="#67ACB3", alpha=0.5) +
+    geom_vline(aes(xintercept = mean), linetype="longdash", color="black")
+  return(plot)
+}
+
 # red #D57668
 # green #67ACB3
 
 clean <- cleanup(df, handleOutliers = identity)
 write.csv(clean, 'clean.csv', row.names=FALSE)
 
-default.plot <- color.outliers
-default.plot(clean)
+default.plot <- normal.distribution.histogram
+#default.plot(clean)
+default.plot(50, 5, 2)
+
+
