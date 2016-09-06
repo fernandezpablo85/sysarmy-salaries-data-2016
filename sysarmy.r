@@ -106,14 +106,40 @@ normal.distribution.histogram <- function(size, mean, sd) {
   return(plot)
 }
 
+same.size.distribution <- function(df) {
+  women <- subset(df, Gender == "F")
+  allMen <- subset(df, Gender == "M")
+  men <- allMen[sample(nrow(allMen), nrow(women)), ]
+  all <- rbind(women, men)
+  return(all)
+}
+
+same.sample.size.gender.distribution <- function(df) {
+  all <- same.size.distribution(df)
+  plot <- ggplot(all, aes(x=Income, fill=Gender), ylab="") + 
+    geom_histogram(binwidth = 2000, alpha=0.9, position = "dodge")
+  return(plot)
+}
+
+all.salaries.gender.distribution <- function(df) {
+  plot <- ggplot(df, aes(x=Income, fill=Gender), ylab="") + 
+    geom_density(alpha=0.6)
+  return(plot)
+}
+
+salaries.by.gender.anova <- function(df) {
+  model <- lm(Income ~ Gender, data=df)
+  return(anova(model))
+}
+
 # red #D57668
 # green #67ACB3
 
 clean <- cleanup(df, handleOutliers = identity)
 write.csv(clean, 'clean.csv', row.names=FALSE)
 
-default.plot <- normal.distribution.histogram
-#default.plot(clean)
-default.plot(50, 5, 2)
+default.plot <- same.sample.size.gender.distribution
+default.plot(clean)
+# default.plot(50, 5, 2)
 
 
